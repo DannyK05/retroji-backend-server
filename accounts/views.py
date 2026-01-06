@@ -41,7 +41,7 @@ def login(request):
                         status=status.HTTP_200_OK)
 
     return Response({"message": "Invalid username or password"},
-                    status=status.HTTP_401_UNAUTHORIZED)
+                    status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
