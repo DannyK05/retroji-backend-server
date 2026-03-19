@@ -15,10 +15,14 @@ def register(request):
     if not username or not password:
         return Response({"message": "Username and password are required", "status":status.HTTP_400_BAD_REQUEST},
                         status=status.HTTP_400_BAD_REQUEST)
-
+  
     if User.objects.filter(username=username).exists():
         return Response({"message": "Username already taken", "status":status.HTTP_400_BAD_REQUEST},
                         status=status.HTTP_400_BAD_REQUEST)
+    
+    if email and User.objects.filter(email=email).exists():
+        return Response({"message": "Email already taken", "status":status.HTTP_400_BAD_REQUEST},
+                    status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
     serialized_user = UserSerializer(user)
