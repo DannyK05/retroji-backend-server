@@ -1,86 +1,101 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Snapz, Comment, Like
-from .serializers import SnapzSerializer, CommentSerializer, permission_classes
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
+from .serializers import SnapzSerializer, CommentSerializer
 
 # Snapz related logic
-def post_snapz (request):
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def post_snapz(request):
     caption = request.data.get("caption")
     image = request.data.get("image")
 
-
-    if not caption or not image :
+    if not caption or not image:
         return Response({'message': "Image and caption are required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-    try: 
+
+    try:
         snapz = Snapz.objects.create(author=request.user, caption=caption, image=image)
     except Exception:
-        return Response({'message':"Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    serialized_snapz = SnapzSerializer(snapz)
+        return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    return Response({'message': "Snapz posted", 'data': {'snapz':serialized_snapz.data}}, status=status.HTTP_201_CREATED)
+    serialized_snapz = SnapzSerializer(snapz)
+    return Response({'message': "Snapz posted", 'data': {'snapz': serialized_snapz.data}}, status=status.HTTP_201_CREATED)
+
 
 @api_view(['GET'])
-def get_snap_by_id (request, snapz_id):
+def get_snap_by_id(request, snapz_id):
     try:
         snapz = Snapz.objects.get(id=snapz_id)
         serialized_snapz = SnapzSerializer(snapz)
-        return(Response({'message': "Snapz retrieved", 'data': serialized_snapz.data}))
+        return Response({'message': "Snapz retrieved", 'data': serialized_snapz.data})
     except Snapz.DoesNotExist:
-        return Response({'message':"Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception :
-        return Response({'message':"Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception:
+        return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
-def get_all_snapz (request):
+def get_all_snapz(request):
     snapz_list = Snapz.objects.all()
     serialized_snapz_list = SnapzSerializer(snapz_list, many=True)
-
     return Response({'message': "All snapz retrieved", 'data': serialized_snapz_list.data}, status=status.HTTP_200_OK)
 
 
-
-#Comment related logic
+# Comment related logic
 @api_view(['POST'])
-def post_comment (request):
+@permission_classes([IsAuthenticated])
+def post_comment(request):
     content = request.data.get("content")
-    snapz = request.data.get("snapz")
-    
-    if not content :
+    snapz_id = request.data.get("snapz_id")
+
+    if not content:
         return Response({'message': "Comment can't be empty"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    if not snapz_id:
+        return Response({'message': "snapz_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        comment = Comment.objects.create(author=request.user, content=content, snapz = snapz)
+        Snapz.objects.get(id=snapz_id)
+    except Snapz.DoesNotExist:
+        return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        comment = Comment.objects.create(author=request.user, content=content, snapz_id=snapz_id)
         serialized_comment = CommentSerializer(comment)
-        return Response({'message': "Comment sent", 'data': serialized_comment.data})
-    except Exception :
-        return Response({'message':"Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+        return Response({'message': "Comment sent", 'data': serialized_comment.data}, status=status.HTTP_201_CREATED)
+    except Exception:
+        return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
-def get_all_comment_by_snapz_id (request, snapz_id):
-
-    snapz = Snapz.objects.get(id=snapz_id)
-    if not snapz :
-        return Response({'message': "Snapz id is not valid"}, status=status.HTTP_400_BAD_REQUEST)
-    
+def get_all_comment_by_snapz_id(request, snapz_id):
     try:
-        comment_list = Comment.objects.get(snapz_id=snapz_id)
-        serialized_comment_list = CommentSerializer(comment_list, many=True)
-        return Response({'message': "All comments retrieved", 'data': serialized_comment_list.data}, status=status.HTTP_200_OK)
-    except Exception:
-        return Response({'message':"Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        snapz = Snapz.objects.get(id=snapz_id)
+    except Snapz.DoesNotExist:
+        return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    comment_list = Comment.objects.filter(snapz=snapz)
+    serialized_comment_list = CommentSerializer(comment_list, many=True)
+    return Response({'message': "All comments retrieved", 'data': serialized_comment_list.data}, status=status.HTTP_200_OK)
 
 
+# Like related logic
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def like(request):
+    snapz_id = request.data.get('snapz_id')
 
-#Like related logic
-@ api_view(['POST'])
-def like (request, snapz_id):
-    pass
+    target_snapz = Snapz.objects.filter(id=snapz_id).first()
+    if not target_snapz:
+        return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        previous_like = Like.objects.get(author=request.user, snapz_id=snapz_id)
+    except Like.DoesNotExist:
+        Like.objects.create(author=request.user, snapz=target_snapz)
+        return Response({'message': f"{request.user} liked Snapz {snapz_id}"}, status=status.HTTP_201_CREATED)
+    else:
+        previous_like.delete()
+        return Response({'message': f"{request.user} unliked Snapz {snapz_id}"}, status=status.HTTP_200_OK)
