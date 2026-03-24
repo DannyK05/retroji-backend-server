@@ -7,7 +7,6 @@ from .serializers import SnapzSerializer, CommentSerializer
 
 # Snapz related logic
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def post_snapz(request):
     caption = request.data.get("caption")
     image = request.data.get("image")
@@ -25,11 +24,11 @@ def post_snapz(request):
 
 
 @api_view(['GET'])
-def get_snap_by_id(request, snapz_id):
+def get_snapz_by_id(request, snapz_id):
     try:
         snapz = Snapz.objects.get(id=snapz_id)
         serialized_snapz = SnapzSerializer(snapz)
-        return Response({'message': "Snapz retrieved", 'data': serialized_snapz.data})
+        return Response({'message': "Snapz retrieved", 'data': serialized_snapz.data}, status=status.HTTP_200_OK)
     except Snapz.DoesNotExist:
         return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception:
@@ -45,7 +44,6 @@ def get_all_snapz(request):
 
 # Comment related logic
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def post_comment(request):
     content = request.data.get("content")
     snapz_id = request.data.get("snapz_id")
@@ -65,12 +63,13 @@ def post_comment(request):
         comment = Comment.objects.create(author=request.user, content=content, snapz_id=snapz_id)
         serialized_comment = CommentSerializer(comment)
         return Response({'message': "Comment sent", 'data': serialized_comment.data}, status=status.HTTP_201_CREATED)
-    except Exception:
+    except Exception as e:
+        print(e)
         return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
-def get_all_comment_by_snapz_id(request, snapz_id):
+def get_all_comments_by_snapz_id(request, snapz_id):
     try:
         snapz = Snapz.objects.get(id=snapz_id)
     except Snapz.DoesNotExist:
@@ -83,7 +82,6 @@ def get_all_comment_by_snapz_id(request, snapz_id):
 
 # Like related logic
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def like(request):
     snapz_id = request.data.get('snapz_id')
 

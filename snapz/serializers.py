@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Snapz
+from .models import Snapz, Comment
 
 
 class SnapzSerializer(serializers.ModelSerializer):
@@ -21,5 +21,5 @@ class SnapzSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Snapz
-        fields = ["id","image","caption", "author", "likes_count", "comment_count", "created_at", "updated_at"]
+        model = Comment
+        fields = ["author", "content","snapz","created_at"]
