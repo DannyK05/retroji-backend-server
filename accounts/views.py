@@ -1,11 +1,18 @@
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -27,9 +34,10 @@ def register(request):
                     status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
+    tokens = get_tokens_for_user(user)
     serialized_user = UserSerializer(user)
 
-    return Response({"message": "Account created", "data":{"user": serialized_user.data,}, "status": status.HTTP_201_CREATED},
+    return Response({"message": "Account created", "data":{"user": serialized_user.data,}, 'tokens':tokens, "status": status.HTTP_201_CREATED},
                     status=status.HTTP_201_CREATED)
 
 
@@ -42,9 +50,9 @@ def login(request):
     user = authenticate(username=username, password=password)
 
     if user is not None:
-        django_login(request, user)
+        tokens = get_tokens_for_user(user)
         serialized_user = UserSerializer(user)
-        return Response({"message": "You are logged in", "data":{"user": serialized_user.data,}, "status": status.HTTP_200_OK},
+        return Response({"message": "You are logged in", "data":{"user": serialized_user.data,}, 'tokens':tokens, "status": status.HTTP_200_OK},
                         status=status.HTTP_200_OK)
     
     return Response({"message": "Invalid username or password", "status":status.HTTP_404_NOT_FOUND},
@@ -52,6 +60,15 @@ def login(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def logout(request):
-    django_logout(request)
-    return Response({"message": "You are logged out",  "status": status.HTTP_200_OK}, status=status.HTTP_200_OK)
+    try:
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({'message': "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response({'message': "You are logged out"}, status=status.HTTP_200_OK)
+    except Exception:
+        return Response({'message': "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
