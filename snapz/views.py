@@ -27,7 +27,7 @@ def post_snapz(request):
 def get_snapz_by_id(request, snapz_id):
     try:
         snapz = Snapz.objects.get(id=snapz_id)
-        serialized_snapz = SnapzSerializer(snapz)
+        serialized_snapz = SnapzSerializer(snapz, context={'request': request})
         return Response({'message': "Snapz retrieved", 'data': serialized_snapz.data}, status=status.HTTP_200_OK)
     except Snapz.DoesNotExist:
         return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -38,7 +38,7 @@ def get_snapz_by_id(request, snapz_id):
 @api_view(['GET'])
 def get_all_snapz(request):
     snapz_list = Snapz.objects.all()
-    serialized_snapz_list = SnapzSerializer(snapz_list, many=True)
+    serialized_snapz_list = SnapzSerializer(snapz_list, context={'request': request}, many=True)
     return Response({'message': "All snapz retrieved", 'data': serialized_snapz_list.data}, status=status.HTTP_200_OK)
 
 
