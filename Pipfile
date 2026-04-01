@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 djangorestframework-simplejwt = "*"
+python-decouple = "*"
 
 [dev-packages]
 
