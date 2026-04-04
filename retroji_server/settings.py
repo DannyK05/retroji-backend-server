@@ -29,6 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG')
 
+
 ALLOWED_HOSTS = ["*"]
 
 
@@ -98,7 +99,7 @@ REST_FRAMEWORK = {
 }
 
 # Simple JWT
-SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(days=1), "ACCESS_REFRESH_LIFETIME": timedelta(weeks=1),}
+SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(days=1), "REFRESH_TOKEN_LIFETIME": timedelta(weeks=1),}
 
 
 # Database
