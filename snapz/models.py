@@ -7,13 +7,16 @@ class Snapz(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     caption = models.CharField(max_length=150)
-    image = models.ImageField(upload_to="snapz_image")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.caption
     
+class SnapzImage(models.Model):
+    image = models.ImageField(upload_to="snapz_image")
+    snapz = models.ForeignKey(Snapz, on_delete=models.CASCADE, related_name="images" )
+
 class Comment(models.Model):    
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)

@@ -1,25 +1,27 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Snapz, Comment, Like
+from .models import Snapz, Comment, Like, SnapzImage
 from .serializers import SnapzSerializer, CommentSerializer
 
 # Snapz related logic
 @api_view(['POST'])
 def post_snapz(request):
     caption = request.data.get("caption")
-    image = request.data.get("image")
+    images = request.data.getlist("images")
 
-    if not caption or not image:
+    if not caption or not images:
         return Response({'message': "Image and caption are required"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        snapz = Snapz.objects.create(author=request.user, caption=caption, image=image)
-    except Exception:
+        snapz = Snapz.objects.create(author=request.user, caption=caption)
+        for image in images:
+            SnapzImage.objects.create(snapz=snapz, image=image)
+
+    except Exception as e:
         return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    serialized_snapz = SnapzSerializer(snapz)
+    serialized_snapz = SnapzSerializer(snapz, context={'request': request})
     return Response({'message': "Snapz posted", 'data': {'snapz': serialized_snapz.data}}, status=status.HTTP_201_CREATED)
 
 
