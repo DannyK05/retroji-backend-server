@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your tests here.
 class AuthTests (APITestCase):
@@ -107,7 +108,10 @@ class AuthTests (APITestCase):
             password='test123'
         )
 
-        self.client.force_login(user=user)
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
 
         url = reverse('logout')
         response = self.client.post(url)
