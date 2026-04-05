@@ -30,9 +30,6 @@ class SnapzSerializer(serializers.ModelSerializer):
             return Like.objects.filter(author=request.user, snapz=obj).exists()
         else:
             return False
-    
-    
-    
         
 
 class CommentSerializer(serializers.ModelSerializer):
