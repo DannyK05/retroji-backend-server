@@ -8,7 +8,7 @@ from .models import Scoop, Like
 @api_view(['POST'])
 def post_scoops(request):
     content = request.data.get('content')
-    parent_id = request.data.get('parent')
+    parent_id = request.data.get('parent_id')
 
     if not content:
         return Response({'message': "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -24,12 +24,12 @@ def post_scoops(request):
 
 @api_view(['POST'])
 def like_scoops(request):
-    scoop_id = request.data.get('scoop')
+    scoop = request.data.get('scoop')
 
-    if not scoop_id:
+    if not scoop:
         return Response({'message': "Scoop is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    scoop = Scoop.objects.filter(id=scoop_id).first()
+    scoop = Scoop.objects.filter(id=scoop).first()
     if not scoop:
         return Response({'message': "Scoop not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -55,12 +55,12 @@ def get_all_scoops(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_all_scoop_replies_by_id(request, scoop_id):
+def get_all_scoops_replies_by_id(request, parent_id):
     try:
-        scoop = Scoop.objects.get(id=scoop_id)
+        parent_scoop = Scoop.objects.get(id=parent_id)
     except Scoop.DoesNotExist:
         return Response({'message': "Scoop not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    scoop_list = Scoop.objects.filter(parent=scoop)
+    scoop_list = Scoop.objects.filter(parent=parent_scoop)
     serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
     return Response({'message': "All replies retrieved", 'data': serialized_scoop_list.data}, status=status.HTTP_200_OK)

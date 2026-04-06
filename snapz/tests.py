@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from uuid import uuid4
 from django.contrib.auth.models import User
 from .models import Snapz, SnapzImage, Comment, Like
-from .serializers import SnapzSerializer
+
 
 # Create your tests here.
 

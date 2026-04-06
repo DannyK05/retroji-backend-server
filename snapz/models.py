@@ -27,7 +27,7 @@ class Comment(models.Model):
         return self.content
 
 class Like(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='snapz_likes')
     snapz = models.ForeignKey(Snapz, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     class Meta:

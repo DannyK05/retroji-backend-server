@@ -16,7 +16,7 @@ class Scoop(models.Model):
         return self.content
 
 class Like(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scoop_likes')
     scoop = models.ForeignKey(Scoop, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     class Meta:
