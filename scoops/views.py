@@ -46,7 +46,7 @@ def like_scoops(request):
 
 @api_view(['GET'])
 def get_all_scoops(request):
-    scoop_list = Scoop.objects.all()
+    scoop_list = Scoop.objects.filter(parent=None)
     serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
     return Response({'message': "All scoops retrieved", 'data': serialized_scoop_list.data}, status=status.HTTP_200_OK)
 

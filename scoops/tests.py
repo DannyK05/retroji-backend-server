@@ -52,9 +52,14 @@ class ScoopTests (APITestCase):
         self.assertFalse(Like.objects.filter(scoop=scoop).exists())
 
     def test_get_all_scoops(self):
+        parent = self.get_test_scoop()
+        self.get_test_scoop(parent=parent.id, content="Yep boy")
+
         url = reverse('get_all_scoops')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"][0]['parent'], None)
+        self.assertEqual(len(response.data["data"]), 1)
         
 
     def test_get_all_scoops_by_id(self):
