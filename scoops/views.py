@@ -1,6 +1,5 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import ScoopSerializer
 from .models import Scoop, Like
@@ -24,12 +23,12 @@ def post_scoops(request):
 
 @api_view(['POST'])
 def like_scoops(request):
-    scoop = request.data.get('scoop')
+    scoop_id = request.data.get('scoop_id')
 
-    if not scoop:
+    if not scoop_id:
         return Response({'message': "Scoop is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    scoop = Scoop.objects.filter(id=scoop).first()
+    scoop = Scoop.objects.filter(id=scoop_id).first()
     if not scoop:
         return Response({'message': "Scoop not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -46,7 +45,6 @@ def like_scoops(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def get_all_scoops(request):
     scoop_list = Scoop.objects.all()
     serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
@@ -54,7 +52,6 @@ def get_all_scoops(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def get_all_scoops_replies_by_id(request, parent_id):
     try:
         parent_scoop = Scoop.objects.get(id=parent_id)

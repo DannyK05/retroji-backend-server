@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from user_profile.models import Profile
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -32,7 +33,12 @@ def register(request):
         return Response({"message": "Email already taken", },
                     status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(username=username, email=email, password=password)
+    try:
+        user = User.objects.create_user(username=username, email=email, password=password)
+        Profile.objects.create(user=user)
+    except Exception:
+        return Response({"message": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     tokens = get_tokens_for_user(user)
     serialized_user = UserSerializer(user)
 

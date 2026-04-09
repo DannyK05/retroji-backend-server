@@ -94,7 +94,7 @@ def like(request):
         previous_like = Like.objects.get(author=request.user, snapz_id=snapz_id)
     except Like.DoesNotExist:
         Like.objects.create(author=request.user, snapz=target_snapz)
-        return Response({'message': f"{request.user} liked Snapz {snapz_id}"}, status=status.HTTP_201_CREATED)
+        return Response({'message': "You liked this Snapz"}, status=status.HTTP_201_CREATED)
     else:
         previous_like.delete()
-        return Response({'message': f"{request.user} unliked Snapz {snapz_id}"}, status=status.HTTP_200_OK)
+        return Response({'message': "You unliked this Snapz"}, status=status.HTTP_200_OK)

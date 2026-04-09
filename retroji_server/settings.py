@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'snapz',
-    'scoops'
+    'scoops',
+    'user_profile'
 ]
 
 MIDDLEWARE = [

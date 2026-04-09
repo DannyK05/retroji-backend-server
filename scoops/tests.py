@@ -41,7 +41,7 @@ class ScoopTests (APITestCase):
     def test_like_scoop(self):
         url = reverse('like_scoops')
         scoop = self.get_test_scoop()
-        data = {'scoop': scoop.id}
+        data = {'scoop_id': scoop.id}
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
