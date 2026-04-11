@@ -63,6 +63,17 @@ def login(request):
     return Response({"message": "Invalid username or password"},
                     status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def is_username_taken(request):
+    username = request.data.get('username')
+    try:
+        username_exist =User.objects.filter(username=username).exists()
+        return Response({"message": "Request sucessful", "data":{'is_available':not username_exist}},
+                        status=status.HTTP_200_OK)
+    except Exception:
+        return Response({"message": "Invalid username or password"},status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

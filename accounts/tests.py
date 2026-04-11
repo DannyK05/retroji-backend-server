@@ -6,6 +6,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your tests here.
 class AuthTests (APITestCase):
+    def create_user(self, username, email, password):
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
 
     def test_register_success(self):
         url = reverse('register')
@@ -32,12 +38,8 @@ class AuthTests (APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_existing_username(self):
-        User.objects.create_user(
-            username='kolade05',
-            email='existing@gmail.com',
-            password='test123'
-        )
-
+        self.create_user('kolade05', 'existing@gmail.com', 'test123')
+        
         url = reverse('register')
         data = {
             'username': 'kolade05',
@@ -50,10 +52,7 @@ class AuthTests (APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_login_success(self):
-        User.objects.create_user(
-            username='kolade05',
-            password='test123'
-        )
+        self.create_user('kolade05', 'existing@gmail.com', 'test123')
 
         url = reverse('login')
         data = {
@@ -67,11 +66,7 @@ class AuthTests (APITestCase):
         self.assertIn('user', response.data['data'])
 
     def test_login_nonexistent_user(self):
-
-        User.objects.create_user(
-            username='kolade05',
-            password='test123'
-        )
+        self.create_user('kolade05', 'existing@gmail.com', 'test123')
 
         url = reverse('login')
         data = {
@@ -85,11 +80,7 @@ class AuthTests (APITestCase):
         
 
     def test_login_wrong_password(self):
-
-        User.objects.create_user(
-            username='kolade05',
-            password='test123'
-        )
+        self.create_user('kolade05', 'existing@gmail.com', 'test123')
 
         url = reverse('login')
         data = {
@@ -100,6 +91,21 @@ class AuthTests (APITestCase):
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)       
+
+    def test_is_username_taken(self):
+        self.create_user('kolade05', 'existing@gmail.com', 'test123')
+        url = reverse('is_username_taken')
+        data = {'username': "kolade05"}
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["data"]["is_available"])
+
+        data = {'username': "booby"}
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["data"]["is_available"])
 
 
     def test_logout(self):
