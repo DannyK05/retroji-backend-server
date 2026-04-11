@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
     followers = serializers.SerializerMethodField()
     class Meta:
         model = User 
-        fields = ["id", "username", "email", "following", "followers"]
+        fields = ["id", "username", "following", "followers"]
 
     def get_following(self, obj):
         return obj.following.count()

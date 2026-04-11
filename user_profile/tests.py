@@ -33,7 +33,6 @@ class UserProfileTests (APITestCase):
         url = reverse('get_user_profile', kwargs={'user_id': self.user.id})
 
         response = self.client.get(url)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)  
           
 
