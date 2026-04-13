@@ -94,16 +94,16 @@ class AuthTests (APITestCase):
 
     def test_is_username_taken(self):
         self.create_user('kolade05', 'existing@gmail.com', 'test123')
-        url = reverse('is_username_taken')
-        data = {'username': "kolade05"}
+        url = reverse('is_username_taken', kwargs={'username':'kolade05'})
+    
 
-        response = self.client.post(url, data, format='json')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["data"]["is_available"])
 
-        data = {'username': "booby"}
+        url = reverse('is_username_taken', kwargs={'username':'bobby'})
 
-        response = self.client.post(url, data, format='json')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["data"]["is_available"])
 
