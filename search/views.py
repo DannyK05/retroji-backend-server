@@ -20,7 +20,7 @@ def search(request):
     snapz = Snapz.objects.filter(caption__icontains=query)
     scoops = Scoop.objects.filter(content__icontains=query)
     comments = Comment.objects.filter(content__icontains=query)
-    profiles = Profile.objects.filter(user__username_icontains=query)
+    profiles = Profile.objects.filter(user__username__icontains=query)
     
     return Response({
         'message': "Search results",

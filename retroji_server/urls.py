@@ -25,4 +25,5 @@ urlpatterns = [
     path('snapz/', include('snapz.urls')),
     path('scoops/', include('scoops.urls')),
     path('profile/', include('user_profile.urls')),
+    path('search/', include('search.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

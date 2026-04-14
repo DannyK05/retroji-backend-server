@@ -7,7 +7,7 @@ from scoops.serializers import ScoopSerializer
 from snapz.serializers import CommentSerializer, SnapzSerializer
 from .models import Profile, User, Follow
 from snapz.models import Comment, Snapz
-from .serializers import ProfileSerializers
+from .serializers import ProfileSerializer
 
 # Create your views here.
 @api_view(["GET"])
@@ -22,7 +22,7 @@ def get_user_profile(request, user_id):
     
     try:
         profile = Profile.objects.filter(user=user).first()
-        serialized_profile = ProfileSerializers(profile, context={'request':request})
+        serialized_profile = ProfileSerializer(profile, context={'request':request})
         return Response({'message': "User profile found", 'data':{'profile':serialized_profile.data}}, status=status.HTTP_200_OK)
     
     except Exception:
@@ -87,7 +87,7 @@ def update_user_profile(request):
         profile.refresh_from_db()
         user.refresh_from_db()
 
-        serialized_profile = ProfileSerializers(profile, context={'request':request})
+        serialized_profile = ProfileSerializer(profile, context={'request':request})
         return Response({'message': "User profile updated", 'data':{'profile':serialized_profile.data}}, status=status.HTTP_200_OK)
     
     except Exception:

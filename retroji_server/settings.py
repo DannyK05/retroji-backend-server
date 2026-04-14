@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'accounts',
     'snapz',
     'scoops',
-    'user_profile'
+    'user_profile',
+    'search',
 ]
 
 MIDDLEWARE = [

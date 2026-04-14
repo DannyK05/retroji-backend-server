@@ -1,6 +1,8 @@
 from rest_framework.test import APITestCase
+from rest_framework import status
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 from user_profile.models import Profile
 from snapz.models import Snapz, Comment, SnapzImage
 from scoops.models import Scoop
@@ -39,16 +41,59 @@ class SearchTests(APITestCase):
             SnapzImage.objects.create(snapz=new_snapz, image=self.create_test_image())
         return snapz
 
-    def create_new_comment(self, count=1, content="Tests are torture"):
-        new_snapz = self.create_new_snapz()
+    def create_new_comment(self, snapz, count=1, content="Tests are torture"):
         comments = []
         for _ in range(count):
             comments.append(Comment.objects.create(author=self.user,
-             content=content, snapz=new_snapz[0]))
+             content=content, snapz=snapz[0]))
         return comments
 
-    def test_search (self):
-        self.create_new_comment()
-        self.create_new_snapz()
+    def test_exact_search(self):
+        search = 'kolade'
+        url = reverse('search') + f'?q={search}'
+
+        snapz = self.create_new_snapz()
+        self.create_new_comment(snapz=snapz)        
         self.create_new_scoops()
         
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['data']['snapz']), 0)
+        self.assertEqual(len(response.data['data']['profiles']), 1)
+
+
+        search = 'Yippie boy'
+        url = reverse('search') + f'?q={search}'
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['data']['snapz']), 0)
+        self.assertEqual(len(response.data['data']['scoops']), 1)
+
+    
+    def test_part_search(self):
+        search = 'e'
+        url = reverse('search') + f'?q={search}'
+
+        snapz = self.create_new_snapz()
+        self.create_new_comment(snapz=snapz)        
+        self.create_new_scoops()
+        
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['data']['snapz']), 1)
+        self.assertEqual(len(response.data['data']['profiles']), 1)
+        self.assertEqual(len(response.data['data']['scoops']), 1)
+        self.assertEqual(len(response.data['data']['comments']), 1)
+
+    def test_empty_search(self):
+        search = ''
+        url = reverse('search') + f'?q={search}'
+
+        snapz = self.create_new_snapz()
+        self.create_new_comment(snapz=snapz)        
+        self.create_new_scoops()
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

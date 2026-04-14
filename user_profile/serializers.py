@@ -2,7 +2,7 @@ from rest_framework import serializers
 from accounts.serializers import UserSerializer
 from .models import Profile, Follow
 
-class ProfileSerializers (serializers.ModelSerializer):
+class ProfileSerializer (serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField()
     
