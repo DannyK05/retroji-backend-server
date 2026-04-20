@@ -1,33 +1,53 @@
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from user_profile.models import Profile
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'access': str(refresh.access_token),
+    }
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     username = request.data.get("username")
     email = request.data.get("email")
     password = request.data.get("password")
 
     if not username or not password:
-        return Response({"message": "Username and password are required", "status":status.HTTP_400_BAD_REQUEST},
+        return Response({"message": "Username and password are required", },
                         status=status.HTTP_400_BAD_REQUEST)
-
+  
     if User.objects.filter(username=username).exists():
-        return Response({"message": "Username already taken", "status":status.HTTP_400_BAD_REQUEST},
+        return Response({"message": "Username already taken", },
                         status=status.HTTP_400_BAD_REQUEST)
+    
+    if email and User.objects.filter(email=email).exists():
+        return Response({"message": "Email already taken", },
+                    status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(username=username, email=email, password=password)
+    try:
+        user = User.objects.create_user(username=username, email=email, password=password)
+        Profile.objects.create(user=user)
+    except Exception:
+        return Response({"message": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    tokens = get_tokens_for_user(user)
     serialized_user = UserSerializer(user)
 
-    return Response({"message": "Account created", "data":{"user": serialized_user.data,}, "status": status.HTTP_201_CREATED},
+    return Response({"message": "Account created", "data":{"user": serialized_user.data,}, 'tokens':tokens},
                     status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     username = request.data.get("username")
     password = request.data.get("password")
@@ -35,16 +55,26 @@ def login(request):
     user = authenticate(username=username, password=password)
 
     if user is not None:
-        django_login(request, user)
+        tokens = get_tokens_for_user(user)
         serialized_user = UserSerializer(user)
-        return Response({"message": "You are logged in", "data":{"user": serialized_user.data,}, "status": status.HTTP_200_OK},
+        return Response({"message": "You are logged in", "data":{"user": serialized_user.data,}, 'tokens':tokens},
                         status=status.HTTP_200_OK)
     
-    return Response({"message": "Invalid username or password", "status":status.HTTP_401_NOT_FOUND},
-                    status=status.HTTP_401_NOT_FOUND)
+    return Response({"message": "Invalid username or password"},
+                    status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def is_username_taken(request, username):
+    try:
+        username_exist =User.objects.filter(username=username).exists()
+        return Response({"message": "Request sucessful", "data":{'is_taken':username_exist}},
+                        status=status.HTTP_200_OK)
+    except Exception:
+        return Response({"message": "Invalid username or password"},status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def logout(request):
-    django_logout(request)
-    return Response({"message": "You are logged out",  "status": status.HTTP_200_OK}, status=status.HTTP_200_OK)
+    return Response({'message': "Logged out"}, status=status.HTTP_200_OK)
