@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'scoops',
     'user_profile',
     'search',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -109,10 +112,8 @@ SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(days=1), "REFRESH_TOKEN_LIFETIM
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3",  
-        conn_max_age=600,
-        ssl_require=False,
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL')
     )
 }
 
@@ -159,3 +160,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 if os.environ.get('DJANGO_TESTING'):
     MEDIA_ROOT = BASE_DIR / 'test_media'
+
+# Cloudinary Integration
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+
+if config('DEBUG', cast=bool):
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
