@@ -15,6 +15,11 @@ import dj_database_url
 import os
 from datetime import timedelta
 from decouple import config
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import cloudinary_storage
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +61,7 @@ INSTALLED_APPS = [
     'search',
     'cloudinary',
     'cloudinary_storage',
+    
 ]
 
 MIDDLEWARE = [
@@ -166,14 +172,22 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 if os.environ.get('DJANGO_TESTING'):
     MEDIA_ROOT = BASE_DIR / 'test_media'
+    
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 # Cloudinary Integration
 
@@ -183,8 +197,3 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
 
-
-if config('DEBUG', cast=bool):
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-else:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

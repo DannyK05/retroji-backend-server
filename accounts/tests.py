@@ -99,13 +99,13 @@ class AuthTests (APITestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data["data"]["is_available"])
+        self.assertTrue(response.data["data"]["is_taken"])
 
         url = reverse('is_username_taken', kwargs={'username':'bobby'})
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data["data"]["is_available"])
+        self.assertFalse(response.data["data"]["is_taken"])
 
 
     def test_logout(self):
