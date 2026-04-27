@@ -121,18 +121,19 @@ SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(days=1), "REFRESH_TOKEN_LIFETIM
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if config('DEBUG', cast=bool):
+if config('PROD', cast=bool):
+     DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL')
+        )
+    }
+    
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL')
-        )
     }
 
 
@@ -188,7 +189,10 @@ STORAGES = {
     },
 }
 
-
+import sys
+if 'test' in sys.argv:
+    STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
+    
 # Cloudinary Integration
 
 CLOUDINARY_STORAGE = {

@@ -18,7 +18,8 @@ def post_snapz(request):
         for image in images:
             SnapzImage.objects.create(snapz=snapz, image=image)
 
-    except Exception:
+    except Exception as e:
+        print(e)
         return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     serialized_snapz = SnapzSerializer(snapz, context={'request': request})
