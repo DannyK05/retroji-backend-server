@@ -17,7 +17,8 @@ class SnapzImage(models.Model):
     image = models.ImageField(upload_to="snapz_image")
     snapz = models.ForeignKey(Snapz, on_delete=models.CASCADE, related_name="images" )
 
-class Comment(models.Model):    
+class Comment(models.Model): 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)   
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
     snapz = models.ForeignKey(Snapz, on_delete=models.CASCADE)
