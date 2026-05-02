@@ -67,7 +67,8 @@ def post_comment(request):
         serialized_comment = CommentSerializer(comment)
         return Response({'message': "Comment sent", 'data': serialized_comment.data}, status=status.HTTP_201_CREATED)
     except Exception as e:
-        return Response({'message': "Internal Server Error", 'error': e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(e)
+        return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
