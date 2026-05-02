@@ -66,8 +66,7 @@ def post_comment(request):
         comment = Comment.objects.create(author=request.user, content=content, snapz_id=snapz_id)
         serialized_comment = CommentSerializer(comment)
         return Response({'message': "Comment sent", 'data': serialized_comment.data}, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        print(e)
+    except Exception:
         return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
