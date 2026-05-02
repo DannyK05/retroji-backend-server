@@ -1,3 +1,5 @@
+from pickle import GET
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -61,3 +63,20 @@ def get_all_scoops_replies_by_id(request, parent_id):
     scoop_list = Scoop.objects.filter(parent=parent_scoop)
     serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
     return Response({'message': "All replies retrieved", 'data': serialized_scoop_list.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def delete_scoops(request):
+    scoop_id = request.data.get("scoop_id")
+
+    try:
+        scoop = Scoop.objects.get(id=scoop_id)
+    except Scoop.DoesNotExist:
+        return Response({'message': "Scoop not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if scoop.author != request.user:
+        return Response({'message': "You can't delete someone else's scoop"}, status=status.HTTP_403_FORBIDDEN)
+
+    scoop.delete()
+    return Response({'message': "Scoop deleted"}, status=status.HTTP_200_OK)
+

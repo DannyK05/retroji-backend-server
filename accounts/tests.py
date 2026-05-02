@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # Create your tests here.
 class AuthTests (APITestCase):
     def create_user(self, username, email, password):
-        User.objects.create_user(
+        return User.objects.create_user(
             username=username,
             email=email,
             password=password,
@@ -123,3 +123,19 @@ class AuthTests (APITestCase):
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    
+    def test_delete_user_account(self):
+        user = self.create_user('kolade05', 'existing@gmail.com', 'test123')
+
+        token = RefreshToken.for_user(user)
+        access_token = str(token.access_token)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
+
+
+        url = reverse('delete_user_account')
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(id=user.id).exists())

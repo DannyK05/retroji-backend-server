@@ -80,3 +80,12 @@ class ScoopTests (APITestCase):
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)    
+    
+    def test_delete_scoops(self):
+        scoop = self.get_test_scoop()
+        url = reverse('delete_scoops')
+        data = {"scoop_id": str(scoop.id)}
+
+        response = self.client.delete(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Scoop.objects.filter(id=scoop.id).exists())

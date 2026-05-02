@@ -99,3 +99,34 @@ def like(request):
     else:
         previous_like.delete()
         return Response({'message': "You unliked this Snapz"}, status=status.HTTP_200_OK)
+    
+
+@api_view(['DELETE'])
+def delete_snapz(request):
+    snapz_id = request.data.get("snapz_id")
+
+    try:
+        snapz = Snapz.objects.get(id=snapz_id)
+    except Snapz.DoesNotExist:
+        return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if snapz.author != request.user:
+        return Response({'message': "You can't delete someone else's snapz"}, status=status.HTTP_403_FORBIDDEN)
+
+    snapz.delete()
+    return Response({'message': "Snapz deleted"}, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def delete_comment(request):
+    comment_id = request.data.get("comment_id")
+
+    try:
+        comment = Comment.objects.get(id=comment_id)
+    except Comment.DoesNotExist:
+        return Response({'message': "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if comment.author != request.user:
+        return Response({'message': "You can't delete someone else's comment"}, status=status.HTTP_403_FORBIDDEN)
+
+    comment.delete()
+    return Response({'message': "Comment deleted"}, status=status.HTTP_200_OK)

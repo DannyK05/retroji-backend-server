@@ -62,27 +62,32 @@ def get_user_comments(request, user_id):
 
 @api_view(["PUT"])
 def update_user_profile(request):
-    user_id = request.data.get('user_id')
     username = request.data.get('username')
+    bio = request.data.get("bio")
     image = request.data.get('image')
 
-    if not user_id:
-        return Response({'messsage': "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.filter(id=user_id).first()
-
-    if not user:
-        return Response({'message': "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    user = request.user
     
     profile = Profile.objects.filter(user=user).first()
+
+    if not profile:
+        return Response({'message': "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
     try:
         if username:
             user.username = username
-            user.save()
+           
 
-        if image:
+        if bio is not None:
+            profile.bio = bio
+            
+
+        if image is not None:
             profile.image = image
-            profile.save()
+           
+        
+        user.save()
+        profile.save()
         
         profile.refresh_from_db()
         user.refresh_from_db()

@@ -192,3 +192,22 @@ class SnapzTests (APITestCase):
 
         response = self.client.post(url, data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)    
+
+    def test_delete_snapz(self):
+        snapz = self.create_snapz()
+        data = {'snapz_id': str(snapz.id)}
+        url = reverse('delete_snapz')
+
+        response = self.client.delete(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Snapz.objects.filter(id=snapz.id).exists())
+    
+    def test_delete_comment(self):
+        snapz = self.create_snapz()
+        comment = self.create_comment(snapz_id=snapz.id)
+        data = {'comment_id': str(comment.id)}
+        url = reverse('delete_comment')
+
+        response = self.client.delete(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Comment.objects.filter(id=comment.id).exists())

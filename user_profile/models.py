@@ -5,6 +5,7 @@ from django.db import models
 # Create your models here.
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bio = models.CharField(max_length=100, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="profile_image", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

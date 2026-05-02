@@ -78,3 +78,10 @@ def is_username_taken(request, username):
 @permission_classes([AllowAny])
 def logout(request):
     return Response({'message': "Logged out"}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def delete_user_account(request):
+    user = request.user
+    user.delete()
+    return Response({'message': "User account deleted"}, status=status.HTTP_200_OK)

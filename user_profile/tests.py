@@ -63,24 +63,46 @@ class UserProfileTests (APITestCase):
 
     def test_update_user_profile_username(self):
         url = reverse('update_user_profile')
-        new_username = "bobby_don"
-        data = {'user_id': str(self.user.id),'username': new_username }
+        data = {'username': "bobby_don" }
 
         response = self.client.put(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['data']['profile']['user']['username'], new_username)
+        self.assertEqual(response.data['data']['profile']['user']['username'], data['username'])
 
     
     def test_update_user_profile_image(self):
         url = reverse('update_user_profile')
         new_image = self.create_test_image()
-        data = {'user_id': str(self.user.id),'image': new_image }
+        data = {'image': new_image }
 
         response = self.client.put(url, data, format='multipart')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('test_image', response.data['data']['profile']['image'])
+        self.assertTrue(response.data['data']['profile']['image'])
+
+
+    def test_update_user_profile_bio(self):
+        url = reverse('update_user_profile')
+        data = {'bio': "cool profile here" }
+
+        response = self.client.put(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(data['bio'], response.data['data']['profile']['bio'])
+
+
+    def test_update_user_profile(self):
+        url = reverse('update_user_profile')
+        new_image = self.create_test_image()
+        data = {'username': "bobby_don",'bio': "cool profile here", 'image': new_image }
+
+        response = self.client.put(url, data, format='multipart')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(data['bio'], response.data['data']['profile']['bio'])
+        self.assertTrue(response.data['data']['profile']['image'])
+        self.assertEqual(response.data['data']['profile']['user']['username'], data['username'])
 
 
     def test_get_invalid_user_profile(self):
