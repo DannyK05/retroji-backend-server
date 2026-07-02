@@ -3,7 +3,22 @@ from rest_framework import status
 from rest_framework.response import Response
 from .models import Snapz, Comment, Like, SnapzImage
 from .serializers import SnapzSerializer, CommentSerializer
+from rest_framework.pagination import PageNumberPagination
 
+class CustomPagination(PageNumberPagination):
+    page_size=10
+
+    def get_paginated_response(self, data, message="Success"):
+        return Response({
+            'message':message, 
+            'data':{
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'data': data
+            }
+        },status=status.HTTP_200_OK)
+    
 # Snapz related logic
 @api_view(['POST'])
 def post_snapz(request):
@@ -41,8 +56,11 @@ def get_snapz_by_id(request, snapz_id):
 @api_view(['GET'])
 def get_all_snapz(request):
     snapz_list = Snapz.objects.all()
-    serialized_snapz_list = SnapzSerializer(snapz_list, context={'request': request}, many=True)
-    return Response({'message': "All snapz retrieved", 'data': serialized_snapz_list.data}, status=status.HTTP_200_OK)
+    paginator = CustomPagination()
+    paginated_snapz = paginator.paginate_queryset(snapz_list,request)
+    serialized_snapz_list = SnapzSerializer(paginated_snapz, context={'request': request}, many=True)
+    return paginator.get_paginated_response(serialized_snapz_list.data,"Snapz fetched successfully")
+
 
 
 # Comment related logic
@@ -78,8 +96,11 @@ def get_all_comments_by_snapz_id(request, snapz_id):
         return Response({'message': "Snapz not found"}, status=status.HTTP_404_NOT_FOUND)
 
     comment_list = Comment.objects.filter(snapz=snapz)
-    serialized_comment_list = CommentSerializer(comment_list, many=True)
-    return Response({'message': "All comments retrieved", 'data': serialized_comment_list.data}, status=status.HTTP_200_OK)
+    paginator = CustomPagination()
+    paginated_comment_list = paginator.paginate_queryset(comment_list,request)
+    serialized_comment_list = CommentSerializer(paginated_comment_list, many=True)
+    
+    return paginator.get_paginated_response(serialized_comment_list.data, "All comments retrieved")
 
 
 # Like related logic

@@ -1,10 +1,23 @@
-from pickle import GET
-
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import ScoopSerializer
 from .models import Scoop, Like
+
+class CustomPagination(PageNumberPagination):
+    page_size=10
+
+    def get_paginated_response(self, data, message="Success"):
+        return Response({
+            'message':message, 
+            'data':{
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'data': data
+            }
+        },status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def post_scoops(request):
@@ -48,9 +61,11 @@ def like_scoops(request):
 
 @api_view(['GET'])
 def get_all_scoops(request):
+    pagination = CustomPagination()
     scoop_list = Scoop.objects.filter(parent=None)
-    serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
-    return Response({'message': "All scoops retrieved", 'data': serialized_scoop_list.data}, status=status.HTTP_200_OK)
+    paginated_scoop_list = pagination.paginate_queryset(scoop_list, request)
+    serialized_scoop_list = ScoopSerializer(paginated_scoop_list, context={'request': request}, many=True)
+    return pagination.get_paginated_response(serialized_scoop_list.data, "All scoops retrieved")
 
 
 @api_view(['GET'])
@@ -59,10 +74,12 @@ def get_all_scoops_replies_by_id(request, parent_id):
         parent_scoop = Scoop.objects.get(id=parent_id)
     except Scoop.DoesNotExist:
         return Response({'message': "Scoop not found"}, status=status.HTTP_404_NOT_FOUND)
-
+    
+    pagination = CustomPagination()
     scoop_list = Scoop.objects.filter(parent=parent_scoop)
-    serialized_scoop_list = ScoopSerializer(scoop_list, context={'request': request}, many=True)
-    return Response({'message': "All replies retrieved", 'data': serialized_scoop_list.data}, status=status.HTTP_200_OK)
+    paginated_scoop_list = pagination.paginate_queryset(scoop_list, request)
+    serialized_scoop_list = ScoopSerializer(paginated_scoop_list, context={'request': request}, many=True)
+    return pagination.get_paginated_response(serialized_scoop_list.data,"All replies retrieved")
 
 
 @api_view(['DELETE'])

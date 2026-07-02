@@ -8,7 +8,22 @@ from snapz.serializers import CommentSerializer, SnapzSerializer
 from .models import Profile, User, Follow
 from snapz.models import Comment, Snapz
 from .serializers import ProfileSerializer
+from rest_framework.pagination import PageNumberPagination
 
+class CustomPagination(PageNumberPagination):
+    page_size=10
+
+    def get_paginated_response(self, data, message="Success"):
+        return Response({
+            'message':message, 
+            'data':{
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'data': data
+            }
+        },status=status.HTTP_200_OK)
+    
 # Create your views here.
 @api_view(["GET"])
 def get_user_profile(request, user_id):
@@ -23,7 +38,7 @@ def get_user_profile(request, user_id):
     try:
         profile = Profile.objects.filter(user=user).first()
         serialized_profile = ProfileSerializer(profile, context={'request':request})
-        return Response({'message': "User profile found", 'data':{'profile':serialized_profile.data}}, status=status.HTTP_200_OK)
+        return Response({'message': "User profile found", 'data': serialized_profile.data}, status=status.HTTP_200_OK)
     
     except Exception:
         return Response({'message': "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -33,10 +48,12 @@ def get_user_snapz(request, user_id):
     user = User.objects.filter(id=user_id).first()
     if not user:
         return Response({'message': "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    snapz = Snapz.objects.filter(author=user)
-    serialized_snapz = SnapzSerializer(snapz, context={'request': request}, many=True)
-    return Response({'message': "User's Snapz found", 'data': {'snapz': serialized_snapz.data}}, status=status.HTTP_200_OK)
+    
+    pagination = CustomPagination()
+    snapz_list = Snapz.objects.filter(author=user)
+    paginated_snapz_list = pagination.paginate_queryset(snapz_list, request)
+    serialized_snapz = SnapzSerializer(paginated_snapz_list, context={'request': request}, many=True)
+    return pagination.get_paginated_response(serialized_snapz.data, "User's Snapz found")
 
 
 @api_view(["GET"])
@@ -45,9 +62,11 @@ def get_user_scoops(request, user_id):
     if not user:
         return Response({'message': "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    scoops = Scoop.objects.filter(author=user)
-    serialized_scoops = ScoopSerializer(scoops, context={'request': request}, many=True)
-    return Response({'message': "User's Scoops found", 'data': {'scoops': serialized_scoops.data}}, status=status.HTTP_200_OK)
+    pagination = CustomPagination()
+    scoops_list = Scoop.objects.filter(author=user)
+    paginated_scoops_list = pagination.paginate_queryset(scoops_list, request)
+    serialized_scoops = ScoopSerializer(paginated_scoops_list, context={'request': request}, many=True)
+    return pagination.get_paginated_response(serialized_scoops.data, "User's Scoops found")
 
 
 @api_view(["GET"])
@@ -56,9 +75,11 @@ def get_user_comments(request, user_id):
     if not user:
         return Response({'message': "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    comments = Comment.objects.filter(author=user)
-    serialized_comments = CommentSerializer(comments, context={'request': request}, many=True)
-    return Response({'message': "User's Comments found", 'data': {'comments': serialized_comments.data}}, status=status.HTTP_200_OK)
+    pagination = CustomPagination()
+    comment_list = Comment.objects.filter(author=user)
+    paginated_comment_list = pagination.paginate_queryset(comment_list, request)
+    serialized_comments = CommentSerializer(paginated_comment_list, context={'request': request}, many=True)
+    return pagination.get_paginated_response(serialized_comments.data, "User's Comments found")
 
 @api_view(["PUT"])
 def update_user_profile(request):
