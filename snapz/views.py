@@ -6,7 +6,7 @@ from .serializers import SnapzSerializer, CommentSerializer
 from rest_framework.pagination import PageNumberPagination
 
 class CustomPagination(PageNumberPagination):
-    page_size=10
+    page_size=20
 
     def get_paginated_response(self, data, message="Success"):
         return Response({

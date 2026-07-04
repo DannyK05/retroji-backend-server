@@ -6,8 +6,7 @@ from .serializers import ScoopSerializer
 from .models import Scoop, Like
 
 class CustomPagination(PageNumberPagination):
-    page_size=10
-
+    page_size=20
     def get_paginated_response(self, data, message="Success"):
         return Response({
             'message':message, 
